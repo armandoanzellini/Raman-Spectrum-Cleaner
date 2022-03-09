@@ -23,7 +23,6 @@ from numpy.linalg import norm
 from scipy.sparse import linalg
 import matplotlib.pyplot as plt
 import numpy.polynomial.polynomial as nppoly
-from pyspectra.readers.read_spc import read_spc_dir, read_spc
 from matplotlib.ticker import AutoMinorLocator
 
 st.title('Raman Spectrum Cleaner')
@@ -130,26 +129,6 @@ class RamanRead():
         if averaged:
             df = self.averaged(df, plot = plot)
             
-        return df    
-    
-    def multifile_spc(self, directory, averaged = False, plot = False):
-        
-        df_spc, dict_spc = read_spc_dir(directory)
-        df = df_spc.transpose()
-        
-        # ensure minimum for each spectrum and subtract to bring baseline to zero
-        df   = df.apply(lambda x: x-x.min())
-        
-        # change the name of the columns to remove the file extension for clarity
-        # create dict of column names to remove directory path
-        coldict = {col : re.sub('\.[a-z]{,3}', '', col) for col in df.columns}
-        
-        # use coldict to rename columns for legibility
-        df.rename(columns = coldict, inplace = True)
-        
-        if averaged:
-            df = self.averaged(df, plot = plot)
-        
         return df
     
     def singlefile(self, file):
@@ -166,12 +145,8 @@ class RamanRead():
             df.rename(columns = {df.columns[0]:fname}, inplace = True)
             # remove name from index column for readability
             df.index.name = None
-            
-        elif fname.endswith('.spc'):
-            fname = re.sub('\.[a-z]{,3}', '', fname)
-            df_spc = read_spc(file)
-            df_spc.name = fname
-            df = df_spc.to_frame()
+        else:
+            st.markdown('**Files other than CSV or TXT cannot be uploaded at this time**')
         
         # ensure minimum for each spectrum and subtract to bring baseline to zero
         df = df.apply(lambda x: x-x.min())
