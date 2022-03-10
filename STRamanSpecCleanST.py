@@ -139,7 +139,7 @@ class RamanRead():
             
         if single_multiscan:
             for file in files:
-                df = pd.read_csv(files, header=None, index_col=0)
+                df = pd.read_csv(file, header=None, index_col=0)
                 
                 # drop non integer index entries
                 non_ix = [x for x in df.index if not x.isdigit()]
