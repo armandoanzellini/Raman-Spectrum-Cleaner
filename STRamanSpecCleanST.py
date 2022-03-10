@@ -40,7 +40,7 @@ with left:
     
 
 with right:
-    st.write('Would you like to apply smoothing?') # add space above to align selections
+    multiscan = st.checkbox('Check box if single file of multiple scans')
     smooth   = st.checkbox('Check box if smoothing with Savitsky-Golay', 
                                value = True)
     if averaged:
@@ -108,39 +108,59 @@ class RamanRead():
             
         return pd.DataFrame(df[samp])
         
-    def multifile_csv(self, files, averaged = False, plot = False):
+    def multifile_csv(self, files, averaged = False, plot = False, 
+                      single_multiscan = False):
         
         selfiles = files
         
-        df = pd.concat(map(lambda file: pd.read_csv(file, 
-                        skiprows = 2, 
-                        names = ['index', re.sub('\.[a-z]{,3}', '', file.name)]), 
-                list(map(lambda f: f, [f for f in selfiles]))),
-                axis=1)
-        
-        df = df.loc[:,~df.columns.duplicated()] #remove duplicated index columns
-        
-        # set index column as index and remove name
-        df.set_index('index', inplace = True)
-        
-        # make sure index is read astype float64
-        df.index = df.index.astype('float64')
-        
-        # remove name from index column for readability
-        df.index.name = None
-        
-        # create dict of column names to remove directory path
-        coldict = {col : re.sub('\.[a-z]{,3}', '', col) for col in df.columns}
-        
-        # use coldict to rename columns for legibility
-        df.rename(columns = coldict, inplace = True)
+        if not single_multiscan:
+            df = pd.concat(map(lambda file: pd.read_csv(file, 
+                            skiprows = 2, 
+                            names = ['index', re.sub('\.[a-z]{,3}', '', file.name)]), 
+                    list(map(lambda f: f, [f for f in selfiles]))),
+                    axis=1)
+            
+            df = df.loc[:,~df.columns.duplicated()] #remove duplicated index columns
+            
+            # set index column as index and remove name
+            df.set_index('index', inplace = True)
+            
+            # make sure index is read astype float64
+            df.index = df.index.astype('float64')
+            
+            # remove name from index column for readability
+            df.index.name = None
+            
+            # create dict of column names to remove directory path
+            coldict = {col : re.sub('\.[a-z]{,3}', '', col) for col in df.columns}
+            
+            # use coldict to rename columns for legibility
+            df.rename(columns = coldict, inplace = True)
+            
+        if single_multiscan:
+            df = pd.read_csv(files, header=None, index_col=0)
+            
+            # drop non integer index entries
+            non_ix = [x for x in df.index if not x.isdigit()]
+            
+            df.drop(non_ix, inplace=True)
+            
+            # drop nan columns (bad scan)
+            df.dropna(axis = 1, how='all', inplace=True)
+            
+            # remove name of index column for legibility
+            df.index.name = None
+            
+            # make sure index is read astype float64
+            df.index = df.index.astype('float64')
+            
         
         if averaged:
             df = self.averaged(df, plot = plot)
             
         return df
     
-    def singlefile(self, file):
+    def singlefile(self, file, multi_scan = False):
         
         fname = file.name
         
@@ -397,7 +417,10 @@ class RamanClean():
 # df['PLSsmooth'].to_csv(direct + f'{samp}_Raman.csv')
 run = st.button('Run')
 if run:
-    df = RamanRead().multifile_csv(files, averaged = averaged, plot = plot)
+    df = RamanRead().multifile_csv(files, 
+                                   averaged = averaged, 
+                                   plot = plot,
+                                   single_multiscan = multiscan)
     for i in df.columns:
         RamanClean(df[i]).run(baseline = baseline, smooth = smooth)
 
