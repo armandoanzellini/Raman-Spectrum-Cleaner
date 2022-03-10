@@ -31,28 +31,33 @@ files = st.file_uploader('Upload TXT or CSV file of spectrum',
                         type=['txt','csv'],
                         accept_multiple_files=True)
 
+baselines = ['arPLS', 'Minima', 'Degree 3 Polynomial']
+
 left, right = st.columns(2)
 with left:
+    baseline = st.selectbox('Select Baseline Algorithm', baselines)
     averaged = st.checkbox('Check box if spectra are to be averaged together')
     
-if averaged:
-    with right:
+
+with right:
+    st.write('Would you like to apply smoothing?') # add space above to align selections
+    smooth   = st.checkbox('Check box if smoothing with Savitsky-Golay', 
+                               value = True)
+    if averaged:
         plot     = st.checkbox('Check box if plotting prior to processing')
-else:
-    plot = False
+    else:
+        plot = False
 
 # Read the spc files from the directory
 class RamanRead():
     def averaged(self, df, plot = True):
         
-        fname = files[0].name
-        
         samp = re.match('[^-]*', df.columns[0])[0]
         
         # Check that all scans have the same name when the number is removed
         for i in range(len(df.columns)-1):
-            col  = re.search(r'.+?(?=\d{1,2}\.[a-z]{,3})', df.columns[i])[0]
-            ncol = re.search(r'.+?(?=\d{1,2}\.[a-z]{,3})', df.columns[i+1])[0]
+            col  = re.search(r'.+?(?=\d{1,2})', df.columns[i])[0]
+            ncol = re.search(r'.+?(?=\d{1,2})', df.columns[i+1])[0]
         if ncol != col:
             st.markdown('Error in Scan Names, Check All Scans Are Equivalent')
     
@@ -60,7 +65,7 @@ class RamanRead():
         col_dict = {}
         
         for column in df.columns:
-            number           = re.findall(r'(\d{1,2})\.[a-z]{,3}', column)[0]
+            number           = re.findall(r'(\d{1,2})', column)[0]
             col_dict[column] = int(number) # create dictionary for column change
             
         df = df.rename(columns = col_dict) # rename columns to integers
@@ -76,9 +81,11 @@ class RamanRead():
             ax.plot(df)
             ax.grid()
             ax.autoscale(enable=True, axis='x', tight=True)
-            ax.set_ylabel('Signal')
-            ax.set_xlabel("Wavenumber (cm$^{-1}$)")
-            plt.show()
+            ax.set_title(f'All Scans: {samp}')
+            ax.set_ylabel('Absorbance', family="sans-serif",  fontsize=12)
+            ax.set_xlabel("Wavenumber (cm$^{-1}$)", family="sans-serif",  fontsize=12)
+            
+            st.pyplot(f)
             
             # PLot either averaged spectrum
             # Create subplot
@@ -89,17 +96,17 @@ class RamanRead():
             
             # Fix axis limits, set title, add labels
             ax.autoscale(enable=True, axis='x', tight=True)
-            ax.set_title('Average of all scans: ' + samp)
-            ax.set_xlabel("Wavenumber (cm$^{-1}$)", family="serif",  fontsize=12)
-            ax.set_ylabel("Absorbance",family="serif",  fontsize=12)
+            ax.set_title(f'All Scans Averaged: {samp}')
+            ax.set_xlabel("Wavenumber (cm$^{-1}$)", family="sans-serif",  fontsize=12)
+            ax.set_ylabel("Absorbance",family="sans-serif",  fontsize=12)
             
             # Set minor ticks
             ax.xaxis.set_minor_locator(AutoMinorLocator())
             ax.yaxis.set_minor_locator(AutoMinorLocator())
             
-            plt.show()
+            st.pyplot(fig)
             
-        return df
+        return pd.DataFrame(df[samp])
         
     def multifile_csv(self, files, averaged = False, plot = False):
         
@@ -392,6 +399,6 @@ run = st.button('Run')
 if run:
     df = RamanRead().multifile_csv(files, averaged = averaged, plot = plot)
     for i in df.columns:
-        RamanClean(df[i]).run()
+        RamanClean(df[i]).run(baseline = baseline, smooth = smooth)
 
 
