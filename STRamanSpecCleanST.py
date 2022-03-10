@@ -138,22 +138,23 @@ class RamanRead():
             df.rename(columns = coldict, inplace = True)
             
         if single_multiscan:
-            df = pd.read_csv(files, header=None, index_col=0)
-            
-            # drop non integer index entries
-            non_ix = [x for x in df.index if not x.isdigit()]
-            
-            df.drop(non_ix, inplace=True)
-            
-            # drop nan columns (bad scan)
-            df.dropna(axis = 1, how='all', inplace=True)
-            
-            # remove name of index column for legibility
-            df.index.name = None
-            
-            # make sure index is read astype float64
-            df.index = df.index.astype('float64')
-            
+            for file in files:
+                df = pd.read_csv(files, header=None, index_col=0)
+                
+                # drop non integer index entries
+                non_ix = [x for x in df.index if not x.isdigit()]
+                
+                df.drop(non_ix, inplace=True)
+                
+                # drop nan columns (bad scan)
+                df.dropna(axis = 1, how='all', inplace=True)
+                
+                # remove name of index column for legibility
+                df.index.name = None
+                
+                # make sure index is read astype float64
+                df.index = df.index.astype('float64')
+                
         
         if averaged:
             df = self.averaged(df, plot = plot)
