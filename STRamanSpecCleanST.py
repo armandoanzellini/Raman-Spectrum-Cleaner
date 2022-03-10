@@ -45,12 +45,14 @@ else:
 class RamanRead():
     def averaged(self, df, plot = True):
         
+        fname = files[0].name
+        
         samp = re.match('[^-]*', df.columns[0])[0]
         
         # Check that all scans have the same name when the number is removed
         for i in range(len(df.columns)-1):
-            col  = re.search(r'.+?(?=\d{1,2}.spc)', df.columns[i])[0]
-            ncol = re.search(r'.+?(?=\d{1,2}.spc)', df.columns[i+1])[0]
+            col  = re.search(r'.+?(?=\d{1,2}\.[a-z]{,3})', df.columns[i])[0]
+            ncol = re.search(r'.+?(?=\d{1,2}\.[a-z]{,3})', df.columns[i+1])[0]
         if ncol != col:
             st.markdown('Error in Scan Names, Check All Scans Are Equivalent')
     
@@ -58,7 +60,7 @@ class RamanRead():
         col_dict = {}
         
         for column in df.columns:
-            number           = re.findall(r'(\d{1,2}).spc', column)[0]
+            number           = re.findall(r'(\d{1,2})\.[a-z]{,3}', column)[0]
             col_dict[column] = int(number) # create dictionary for column change
             
         df = df.rename(columns = col_dict) # rename columns to integers
