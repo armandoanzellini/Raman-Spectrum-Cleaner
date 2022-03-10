@@ -155,6 +155,12 @@ class RamanRead():
                 # make sure index is read astype float64
                 df.index = df.index.astype('float64')
                 
+                # change column names to match other multifile upload
+                coldict = {col : file.name + '-' + str(col) for col in df.columns}
+                
+                # use coldict to rename columns for legibility
+                df.rename(columns = coldict, inplace = True)
+                
         
         if averaged:
             df = self.averaged(df, plot = plot)
