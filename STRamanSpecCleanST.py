@@ -31,7 +31,7 @@ files = st.file_uploader('Upload TXT or CSV file of spectrum',
                         type=['txt','csv'],
                         accept_multiple_files=True)
 
-baselines = ['arPLS', 'Minima', 'Degree 3 Polynomial']
+baselines = ['arPLS', 'minima', 'polyfit']
 
 left, right = st.columns(2)
 with left:
