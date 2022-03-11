@@ -31,6 +31,8 @@ files = st.file_uploader('Upload TXT or CSV file of spectrum',
                         type=['txt','csv'],
                         accept_multiple_files=True)
 
+files.sort(key = lambda x: x.name)
+
 baselines = ['arPLS', 'minima', 'polyfit']
 
 left, right = st.columns(2)
@@ -161,6 +163,8 @@ class RamanRead():
                 # use coldict to rename columns for legibility
                 df.rename(columns = coldict, inplace = True)
                 
+        # ensure minimum for each spectrum and subtract to bring baseline to 0
+        df = df.apply(lambda x: x-x.min())
         
         if averaged:
             df = self.averaged(df, plot = plot)
@@ -184,14 +188,14 @@ class RamanRead():
         else:
             st.markdown('**Files other than CSV or TXT cannot be uploaded at this time**')
         
-        # ensure minimum for each spectrum and subtract to bring baseline to zero
+        # ensure minimum for each spectrum and subtract to bring baseline to 0
         df = df.apply(lambda x: x-x.min())
         
         return df
     
 class RamanClean():
     def __init__(self, spec_sr):
-        self.sr   = spec_sr[350:2000] # following Ortiz et al 2021
+        self.sr   = spec_sr[775:2000] # see notes for choice
         self.samp = spec_sr.name
         
     def minima_baseline(self, sr, plot = False):
@@ -398,11 +402,14 @@ class RamanClean():
         ax.autoscale(enable=True, axis='x', tight=True)
         ax.set_title(f'Smoothed {algo} Corrected Spectrum: ' + samp)
         ax.set_xlabel("Wavenumber (cm$^{-1}$)", family="serif",  fontsize=12)
-        ax.set_ylabel("Absorbance",family="serif",  fontsize=12)
+        ax.set_ylabel("Relative Absorbance",family="serif",  fontsize=12)
         
         # Set minor ticks
         ax.xaxis.set_minor_locator(AutoMinorLocator())
         ax.yaxis.set_minor_locator(AutoMinorLocator())
+        
+        # add a temporary horizontal at 0.15 to select which samples need rerun
+        plt.axhline(0.15, color = 'k', linestyle = ':')
         
         st.pyplot(fig)
         
