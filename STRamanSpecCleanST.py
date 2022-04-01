@@ -328,8 +328,9 @@ class RamanClean():
         sr = self.sr
 
         if algo == 'arPLS':
-            _, corrected, info = self.arPLS_baseline(sr, lam=1e4,
-                                                         niter=5000,
+            _, corrected, info = self.arPLS_baseline(sr, ratio = 1e-6,
+                                                         lam=1e4,
+                                                         niter=5500,
                                                          full_output=True)
         elif algo == 'minima':
             corrected = self.minima_baseline(sr)
@@ -363,7 +364,11 @@ class RamanClean():
             ax.xaxis.set_minor_locator(AutoMinorLocator())
             ax.yaxis.set_minor_locator(AutoMinorLocator())
             
-            plt.show()
+            # add a temporary horizontal at 0.15 to select which samples need rerun
+            plt.axhline(0.15, color = 'k', linestyle = ':')
+            plt.axhline(0.30, color = 'k', linestyle = '--')
+            
+            st.pyplot(fig)
         
         self.corrected = corrected
         
@@ -420,11 +425,15 @@ class RamanClean():
         
         sr = self.sr
         
-        smoothed = self.apply_smoothing(baseline)
+        if smooth:
+            based = self.apply_smoothing(baseline)
+            
+        if not smooth:
+            based = self.apply_baseline(baseline, plot=True)
         
         corrected = self.corrected
         
-        return sr, corrected, smoothed
+        return sr, corrected, based
     
     
 
