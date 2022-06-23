@@ -195,7 +195,7 @@ class RamanRead():
     
 class RamanClean():
     def __init__(self, spec_sr):
-        self.sr   = spec_sr[775:2000] # see notes for choice
+        self.sr   = spec_sr[775:1900] # see notes for choice
         self.samp = spec_sr.name
         
     def minima_baseline(self, sr, plot = False):
