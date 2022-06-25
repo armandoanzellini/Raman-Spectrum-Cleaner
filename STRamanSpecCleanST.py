@@ -414,8 +414,9 @@ class RamanClean():
         ax.yaxis.set_minor_locator(AutoMinorLocator())
         
         # add a temporary horizontal at 0.15 to select which samples need rerun
-        plt.axhline(0.15, color = 'k', linestyle = ':')
-        plt.axhline(0.30, color = 'k', linestyle = '--')
+        plt.axhline(0.05, color = 'k', linestyle = ':')
+        plt.axhline(0.15 , color = 'k', linestyle = ':')
+        plt.axhline(0.30 , color = 'k', linestyle = '--')
         
         st.pyplot(fig)
         
